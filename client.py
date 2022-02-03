@@ -2,6 +2,9 @@
 from socket import * 
 import sys # In order to terminate the program
 from struct import *
+from struct import pack, unpack
+import time
+
 print("------------ Starting Stage A  ------------")
 serverName = 'localhost'
 #serverName = '10.84.88.53'
@@ -21,19 +24,19 @@ packet, serverAddress = clientSocket.recvfrom(2048)
 format_str = "!IHHIIHH"
 
 data_length, pcode, entity, repeat, udp_port, len_var, codeA = unpack(format_str, packet)
-print("Recieved packet from server: data_len: {} pcode: {} entity: {} repeat: {} len: {} udp_port: {} codeA: {}".format(data_length, pcode, entity, repeat, udp_port, len_var, codeA))
+print("Received packet from server: data_len: {} pcode: {} entity: {} repeat: {} len: {} udp_port: {} codeA: {}".format(data_length, pcode, entity, repeat, udp_port, len_var, codeA))
 
 print("------------ End of Stage A  ------------\n")
 print("------------ Starting Stage B  ------------")
 
 for i in range(repeat):
-    data = "{}{}".format(i, bytearray(len_var + 4 - len_var%4)).encode('utf-8')
+    data = "{}{}".format(i, bytearray(len_var + 4 - len_var%4)).encode('utf-8') #edit rounding
     format_str = "!IHHI{}s{}x".format(len(data), 4 - len(data)%4)
-    packet = pack(format_str, len(data), codeA, 1, i, data)
+    packet = pack(format_str, len(data), codeA, 1, i, data) #change data_length method
     clientSocket. sendto( packet, (serverName, udp_port))
 
     clientSocket.settimeout(5.0)
-    try:
+    try: #add loop
         packet, serverAddress = clientSocket.recvfrom(2048)
     except TimeoutError:
         clientSocket. sendto( packet, (serverName, udp_port))
@@ -54,3 +57,41 @@ print("Recieved final packet: data_len: {}, pcode: {}, entity: {}, tcp_port: {},
 print("------------ End of Stage B  ------------")
 
 clientSocket.close()
+
+print("------------ Starting Stage C  ------------")
+
+serverName = 'localhost'
+# Assign a port number
+serverPort = 6789
+print('connecting to server at tcp port {}'.format(serverPort))
+# Bind the socket to server address and server port
+clientSocket = socket(AF_INET, SOCK_STREAM)
+
+clientSocket.connect((serverName, serverPort))
+
+time.sleep(2)
+
+packetC, serverAddress = clientSocket.recvfrom(2048)
+format_str = '!IHHIIIc'
+data_length, pcode, entity, repeat2, len2, codeC, char = unpack(format_str, packetC)
+print('Received packet from server: data_len: {}  pcode: {}   entity: {}   repeat2: {}   len2: {}   codeC: {}   char:  {}'.format(data_length, pcode, entity, repeat2, len2, codeC, bytes(char).decode()))
+
+print("------------ End of Stage C  ------------\n")
+print("------------ Starting Stage D  ------------")
+
+if (len2)%4 != 0:
+    len2_adjusted = len2 + (4 - (len2%4))
+else: len2_adjusted = len2
+format_str = '!IHH{}s'.format(len2_adjusted)
+packetD = pack(format_str, len2_adjusted, codeC, 1, char*len2_adjusted)
+print('sending  {} to server for {} times'.format(bytes(char*len2_adjusted).decode(), repeat2))
+for _ in range(repeat2):
+    clientSocket.sendto(packetD, (serverName, serverPort))
+
+packetD = clientSocket.recv(2048)
+format_str = '!IIHI'
+data_length, pcode, entity, codeD = unpack(format_str, packetD)
+print('Received from server: data_len: {}  pcode: {}  entity: {}  codeD: {}'.format(data_length, pcode, entity, codeD))
+
+clientSocket.close()
+sys.exit()
