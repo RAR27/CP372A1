@@ -44,7 +44,7 @@ for _ in range(repeat):
     packet, clientAddress = serverSocket.recvfrom(2048)
     packet_length = len(packet)
     data_length, pcode, entity, packet_id = unpack("!IHHI", packet[:12])
-    data = unpack("!{}s{}x".format(data_length, 4 - data_length%4), packet[12:])
+    data = unpack("!{}s".format(data_length), packet[12:])
     print("SERVER: received_packet_id =  {} data_len =  {}  pcode: {}".format(packet_id, data_length, pcode))
     #add checks
     if packet_length%4 != 0:
