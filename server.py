@@ -11,6 +11,7 @@ serverSocket = socket(AF_INET, SOCK_DGRAM)
 
 # Bind the socket to server address and server port
 serverSocket.bind(("", serverPort))
+serverSocket.settimeout(3.0)
 
 packet, clientAddress = serverSocket.recvfrom(1024)
 packet_length = len(packet)
