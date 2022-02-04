@@ -30,9 +30,10 @@ print("------------ End of Stage A  ------------\n")
 print("------------ Starting Stage B  ------------")
 
 for i in range(repeat):
-    data = "{}{}".format(i, bytearray(len_var + 4 - (4 if len_var%4 == 0 else len_var%4))).encode('utf-8')
+    data_length = len_var + 4 - (4 if len_var%4 == 0 else len_var%4)
+    data = "{}{}".format(i, bytearray(data_length)).encode()
     format_str = "!IHHI{}s{}x".format(len(data), 4 - len(data)%4)
-    packet = pack(format_str, len(data), codeA, 1, i, data) #change data_length method
+    packet = pack(format_str, data_length, codeA, 1, i, data) #change data_length method
     clientSocket. sendto( packet, (serverName, udp_port))
 
     clientSocket.settimeout(5.0)
