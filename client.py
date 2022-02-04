@@ -1,3 +1,6 @@
+#Rehan Rana 170947330
+#Syed Hamzah Raza 170975760
+
 # Import socket module
 from socket import * 
 import sys # In order to terminate the program
