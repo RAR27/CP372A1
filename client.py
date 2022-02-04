@@ -33,14 +33,16 @@ for i in range(repeat):
     data_length = len_var + 4 - (4 if len_var%4 == 0 else len_var%4)
     data = "{}{}".format(i, bytearray(data_length)).encode()
     format_str = "!IHHI{}s{}x".format(len(data), 4 - len(data)%4)
-    packet = pack(format_str, data_length, codeA, 1, i, data) #change data_length method
+    packet = pack(format_str, data_length, codeA, 1, i, data)
     clientSocket. sendto( packet, (serverName, udp_port))
 
     clientSocket.settimeout(5.0)
-    try: #add loop
-        packet, serverAddress = clientSocket.recvfrom(2048)
-    except TimeoutError:
-        clientSocket. sendto( packet, (serverName, udp_port))
+    while True:
+        try:
+            packet, serverAddress = clientSocket.recvfrom(2048)
+            break
+        except TimeoutError:
+            clientSocket. sendto( packet, (serverName, udp_port))
 
     format_str = "!IHHI"
     data_length, pcode, entity, acked_packet_id = unpack(format_str, packet)
