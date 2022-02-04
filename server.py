@@ -22,6 +22,15 @@ print("receiving from the client: data_length: {} code: {} entity: {} data: {}".
 if packet_length%4 != 0:
     print("Packet length not divisible by 4")
     serverSocket.close()  
+    exit()
+elif pcode != 0:
+    print("Unexpected pcode")
+    serverSocket.close()
+    exit()
+elif data_length != len(data):
+    print("Data length does not match")
+    serverSocket.close()
+    exit()
 
 print("\nSERVER: ------------ Starting Stage A  ------------\n")
 
@@ -41,16 +50,35 @@ print("SERVER: Server ready on the new UDP port: {}".format(udp_port))
 print("\nSERVER:------------ End of Stage A  ------------\n")
 print("\nSERVER:------------ Starting Stage B  ------------")
 
+prev_id = 0
 for _ in range(repeat):
     packet, clientAddress = serverSocket.recvfrom(2048)
     packet_length = len(packet)
     data_length, pcode, entity, packet_id = unpack("!IHHI", packet[:12])
     data = unpack("!{}s".format(data_length), packet[12:])
     print("SERVER: received_packet_id =  {} data_len =  {}  pcode: {}".format(packet_id, data_length, pcode))
-    #add checks
     if packet_length%4 != 0:
         print("Packet length not divisible by 4")
         serverSocket.close()  
+        exit()
+    elif pcode != codeA:
+        print("Unexpected pcode")
+        serverSocket.close()
+        exit()
+    elif unpack("!I", packet[12:16])[0] != packet_id:
+        print("packet_id does not match data {} {}".format(unpack("!I", packet[12:16]), packet_id))
+        serverSocket.close()
+        exit()
+    elif packet_id > 0 and packet_id != prev_id + 1:
+        print("Packets not sent in order")
+        serverSocket.close()
+        exit()
+    elif data_length != len(data):
+        print("Data length does not match")
+        serverSocket.close()
+        exit()
+
+    prev_id = packet_id
 
     format_str = "!IHHI"
     packet = pack(format_str, 4, pcode, 2, packet_id)
