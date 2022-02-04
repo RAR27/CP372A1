@@ -27,7 +27,7 @@ elif pcode != 0:
     print("Unexpected pcode")
     serverSocket.close()
     exit()
-elif data_length != len(data):
+elif data_length != len(data[0]):
     print("Data length does not match")
     serverSocket.close()
     exit()
@@ -73,7 +73,7 @@ for _ in range(repeat):
         print("Packets not sent in order")
         serverSocket.close()
         exit()
-    elif data_length != len(data):
+    elif data_length != len(data[0]):
         print("Data length does not match")
         serverSocket.close()
         exit()
